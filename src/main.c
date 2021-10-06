@@ -5,17 +5,22 @@
 int felish_help();
 int felish_meow();
 int felish_exit();
+int felish_guessing_game();
+
+char *felish_read_line(void);
 
 char *builtin_str[] = {
     "help",
     "meow",
-    "exit"
+    "exit",
+    "guessgame"
 };
 
 int (*builtin_func[]) (void) = {
     &felish_help,
     &felish_meow,
-    &felish_exit
+    &felish_exit,
+    &felish_guessing_game
 };
 
 
@@ -60,6 +65,46 @@ int felish_meow()
 int felish_exit()
 {
     return 0;
+}
+
+/*
+ * Felish Guessing Game.
+*/
+#define MAX_GUESS_INT 10
+#define MAX_GUESS_TRIES 5
+int felish_guessing_game()
+{
+    int randnum = (rand() % MAX_GUESS_INT - 1) + 1;
+
+    printf("Meoww!! Guess a number between 1 to %i!\n", MAX_GUESS_INT);
+    printf("You only have %i tries!\n", MAX_GUESS_TRIES);
+
+    int tries = 0;
+    
+    while (tries < MAX_GUESS_TRIES)
+    {
+        printf(">>> ");
+        char *answer = felish_read_line();
+
+        if (atoi(answer) == randnum)
+        {
+            printf("Wow! Correct! Meow meow!\n");
+            return 1;
+        }
+        else if (atoi(answer) > randnum)
+        {
+            printf("Not quite, meow... Too high...\n");
+            tries++;
+        }
+        else
+        {
+            printf("Not quite, meow... Too low...\n");
+            tries++;
+        }
+    }
+
+    printf("Too bad! No more tries! Better luck next time, nyaa~\n");
+    return 1;
 }
 
 
