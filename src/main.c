@@ -137,7 +137,7 @@ void felish_loop(void)
 
     do
     {
-        printf(">> ");
+        printf(":3 ");
         line = felish_read_line();
         status = felish_execute(line);
 
