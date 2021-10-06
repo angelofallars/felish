@@ -4,15 +4,18 @@
 
 int felish_help();
 int felish_meow();
+int felish_exit();
 
 char *builtin_str[] = {
     "help",
-    "meow"
+    "meow",
+    "exit"
 };
 
 int (*builtin_func[]) (void) = {
     &felish_help,
-    &felish_meow
+    &felish_meow,
+    &felish_exit
 };
 
 
@@ -25,16 +28,38 @@ int felish_num_builtins()
  * Builtin functions
 */
 
+/*
+ * The help function displaying the commands
+*/
 int felish_help()
 {
-    printf("This is the help message.\nIN CONSTRUCTION\n");
+    printf("Felish, a 'minimalist' shell\n");
+
+    printf("Commands:\n");
+
+    for (int i = 0; i < felish_num_builtins(); i++)
+    {
+        printf(" %s\n", builtin_str[i]);
+    }
+
     return 1;
 }
 
+/*
+ * Meows. The shell is felish you know.
+*/
 int felish_meow()
 {
     printf("Meow meow meow meow!\n");
     return 1;
+}
+
+/*
+ * Exit the shell.
+*/
+int felish_exit()
+{
+    return 0;
 }
 
 
