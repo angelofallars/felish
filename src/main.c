@@ -1,3 +1,5 @@
+#include <sys/wait.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,7 +18,7 @@ char *builtin_str[] = {
     "guessgame"
 };
 
-int (*builtin_func[]) (void) = {
+int (*builtin_func[]) (char **) = {
     &felish_help,
     &felish_meow,
     &felish_exit,
@@ -36,7 +38,7 @@ int felish_num_builtins()
 /*
  * The help function displaying the commands
 */
-int felish_help()
+int felish_help(char** args)
 {
     printf("Felish, a 'minimalist' shell\n");
 
@@ -53,7 +55,7 @@ int felish_help()
 /*
  * Meows. The shell is felish you know.
 */
-int felish_meow()
+int felish_meow(char** args)
 {
     printf("Meow meow meow meow!\n");
     return 1;
@@ -62,7 +64,7 @@ int felish_meow()
 /*
  * Exit the shell.
 */
-int felish_exit()
+int felish_exit(char** args)
 {
     return 0;
 }
@@ -72,7 +74,7 @@ int felish_exit()
 */
 #define MAX_GUESS_INT 10
 #define MAX_GUESS_TRIES 5
-int felish_guessing_game()
+int felish_guessing_game(char** args)
 {
     int randnum = (rand() % MAX_GUESS_INT - 1) + 1;
 
@@ -108,24 +110,60 @@ int felish_guessing_game()
 }
 
 
-// Execute the command
-int felish_execute(char *arg)
+// Launch a program
+int felish_launch(char **args)
 {
-    if (arg == NULL)
+    pid_t pid, wpid;
+    int status;
+
+    pid = fork();
+
+    if (pid == 0)
+    {
+        // Child process
+        if (execvp(args[0], (args)) == -1)
+        {
+            perror("felish");
+        }
+        exit(EXIT_FAILURE);
+    }
+    else if (pid < 0)
+    {
+        // Error forking
+        perror("felish");
+    }
+    // Parent process
+    else
+    {
+        do
+        {
+            wpid = waitpid(pid, &status, WUNTRACED);
+        }
+        while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+
+    return 1;
+}
+
+
+// Execute the command
+int felish_execute(char **args)
+{
+    // Empty command
+    if (args[0] == NULL)
     {
         return 1;
     }
 
     for (int i = 0; i < felish_num_builtins(); i++)
     {
-        if (strcmp(arg, builtin_str[i]) == 0)
+        if (strcmp(args[0], builtin_str[i]) == 0)
         {
-            return (*builtin_func[i])();
+            return (*builtin_func[i])(args);
         }
     }
 
-    // No builtin function found
-    printf("felish: no command found\n");
+    felish_launch(args);
     return 1;
 }
 
@@ -174,19 +212,49 @@ char *felish_read_line(void)
 }
 
 
+// Split a line into tokens for commands
+char **felish_split_line(char *line)
+{
+    int bufsize = 64, position = 0;
+    char **tokens = malloc(bufsize * sizeof(char*));
+    char *token;
+
+    if (!tokens)
+    {
+        fprintf(stderr, "felish: allocation error\n");
+        exit(EXIT_FAILURE);
+    }
+
+    token = strtok(line, " ");
+    while (token != NULL)
+    {
+        tokens[position] = token;
+        position++;
+
+        token = strtok(NULL, " ");
+    }
+    tokens[position] = NULL;
+
+    return tokens;
+}
+
+
 void felish_loop(void)
 {
     // This is a "minimalist" shell, only one command and no args
     char *line;
+    char **args;
     int status;
 
     do
     {
         printf(":3 ");
         line = felish_read_line();
-        status = felish_execute(line);
+        args = felish_split_line(line);
+        status = felish_execute(args);
 
         free(line);
+        free(args);
     }
     while (status);
 }
