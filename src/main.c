@@ -79,7 +79,7 @@ int felish_guessing_game(char** args)
     int randnum = (rand() % MAX_GUESS_INT - 1) + 1;
 
     printf("Meoww!! Guess a number between 1 to %i!\n", MAX_GUESS_INT);
-    printf("You only have %i tries!\n", MAX_GUESS_TRIES);
+    printf("You only have %i tries! (Type \"q\" to quit)\n", MAX_GUESS_TRIES);
 
     int tries = 0;
     
@@ -87,8 +87,11 @@ int felish_guessing_game(char** args)
     {
         printf(">>> ");
         char *answer = felish_read_line();
-
-        if (atoi(answer) == randnum)
+        
+        if (strcmp(answer, "q") == 0) {
+            return 1;
+        }
+        else if (atoi(answer) == randnum)
         {
             printf("Wow! Correct! Meow meow!\n");
             return 1;
